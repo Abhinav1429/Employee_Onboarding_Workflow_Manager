@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Employee-Onboarding-Workflow-Manager
 ## Problem Statement:
 Build an application to define and track onboarding tasks for new employees. Key Requirements: - Workflow Templates: admin defines steps and responsible roles. - Task Assignment: assign tasks to new hires and managers. - Progress Tracking: view status of each step in a workflow. - Notifications: send in-app reminders for pending tasks. Tools and Resources: - React.js - Node.js, Express.js - MongoDB, Mongoose Deliverables: - GitHub repo. - Running app showing workflow creation and tracking. - Example onboarding template and user task list.
@@ -296,3 +297,6 @@ We have also used postman to use post and get which are integrated through serve
 ```
 
 
+=======
+# Employee_Onboarding_Workflow_Manager
+>>>>>>> 6d50d352b456abc5837aa813407e0a3ced7745cf
