@@ -1,0 +1,475 @@
+const express = require("express");
+const OnboardingInstance = require("../models/OnboardingInstance");
+const Notification = require("../models/Notification");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+const router = express.Router();
+
+// --- file upload setup ---
+const UPLOAD_DIR = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, UPLOAD_DIR);
+  },
+  filename: function (req, file, cb) {
+    const safeBase = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+    cb(null, `${Date.now()}_${Math.random().toString(16).slice(2)}_${safeBase}`);
+  }
+});
+
+const upload = multer({ storage });
+
+/* ASSIGN WORKFLOW TO EMPLOYEE*/
+router.post("/assign", async (req, res) => {
+  try {
+    const { employeeId, workflowTemplate, assignedBy, managerId } = req.body;
+
+    const tasks = workflowTemplate.steps.map(step => ({
+      stepOrder: step.stepOrder,
+      title: step.title,
+      assignedToRole: step.assignedRole
+    }));
+
+    const startedAt = new Date();
+    let deadline = null;
+    if (workflowTemplate.allottedTimeDays && workflowTemplate.allottedTimeDays > 0) {
+      deadline = new Date(startedAt.getTime() + workflowTemplate.allottedTimeDays * 24 * 60 * 60 * 1000);
+    }
+
+    const onboarding = await OnboardingInstance.create({
+      employeeId,
+      workflowTemplateId: workflowTemplate._id,
+      tasks,
+      progress: 0,
+      status: "active",
+      projectStatus: "pending",
+      startedAt,
+      deadline,
+      assignedBy,
+      managerId
+    });
+
+    await Notification.create({
+      userId: employeeId,
+      message: "Onboarding workflow assigned"
+    });
+
+    // Notify manager if assigned
+    if (managerId) {
+      await Notification.create({
+        userId: managerId,
+        message: `New onboarding workflow assigned to employee ${employeeId}`
+      });
+    }
+
+    res.status(201).json(onboarding);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* MANAGER: LIST EMPLOYEES UNDER ME (from onboarding assignments) */
+router.get("/manager/employees", async (req, res) => {
+  try {
+    const { managerId } = req.query;
+    if (!managerId) return res.status(400).json({ error: "managerId is required" });
+
+    const onboardings = await OnboardingInstance.find({ managerId })
+      .populate("employeeId", "name email dateOfJoining managerId")
+      .populate("workflowTemplateId", "name allottedTimeDays")
+      .sort({ startedAt: -1 });
+
+    // Reduce to latest onboarding per employee (for table display)
+    const map = new Map();
+    for (const o of onboardings) {
+      const eid = o.employeeId?._id?.toString() || o.employeeId?.toString();
+      if (!eid) continue;
+      if (!map.has(eid)) map.set(eid, o);
+    }
+
+    const rows = Array.from(map.values()).map(o => ({
+      employee: o.employeeId,
+      onboarding: o
+    }));
+
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/*MANAGER APPROVE / REJECT TASK*/
+router.post("/manager-review", async (req, res) => {
+  const { onboardingId, stepOrder, action, comment } = req.body;
+
+  const onboarding = await OnboardingInstance.findById(onboardingId);
+  if (!onboarding) return res.status(404).json({ message: "Not found" });
+
+  const task = onboarding.tasks.find(t => t.stepOrder === stepOrder);
+
+  task.status = action === "approve" ? "approved" : "rejected";
+  task.managerComment = comment;
+  task.reviewedAt = new Date();
+
+  const approvedCount = onboarding.tasks.filter(
+    t => t.status === "approved"
+  ).length;
+
+  onboarding.progress = Math.round(
+    (approvedCount / onboarding.tasks.length) * 100
+  );
+
+  if (onboarding.progress === 100) {
+    onboarding.completedAt = new Date();
+    onboarding.status = "completed";
+  }
+
+  // If workflow was rejected but now has progress, set back to active
+  if (onboarding.status === "rejected" && onboarding.progress > 0) {
+    onboarding.status = "active";
+  }
+
+  await onboarding.save();
+  // notify employee about manager action
+  try {
+    await Notification.create({
+      userId: onboarding.employeeId,
+      message: `Manager ${action}ed task ${stepOrder} for onboarding ${onboardingId}`
+    });
+  } catch (e) {
+    console.warn("Failed to create notification", e.message);
+  }
+  res.json(onboarding);
+});
+
+/* GET ALL MANAGER TASKS - Filtered by managerId */
+router.get("/manager-tasks", async (req, res) => {
+  try {
+    const { managerId } = req.query;
+    const query = managerId ? { managerId } : {};
+    const onboardings = await OnboardingInstance.find(query).populate("employeeId", "name email");
+    const now = new Date();
+    const tasks = onboardings.flatMap(o =>
+      o.tasks
+        .filter(t => t.assignedToRole === "manager")
+        .map(t => {
+          const to = t.toObject();
+          const timeRemainingDays = o.deadline ? Math.ceil((o.deadline - now) / (1000 * 60 * 60 * 24)) : null;
+          return {
+            onboardingId: o._id,
+            employeeId: o.employeeId,
+            employeeName: o.employeeId?.name || "Unknown",
+            workflowTemplateId: o.workflowTemplateId,
+            deadline: o.deadline,
+            timeRemainingDays,
+            updates: o.updates || [],
+            progress: o.progress,
+            status: o.status,
+            startedAt: o.startedAt,
+            ...to
+          };
+        })
+    );
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* EMPLOYEE: UPDATE PROJECT STATUS (started/pending/ongoing/completed) */
+router.put("/:onboardingId/project-status", async (req, res) => {
+  try {
+    const { onboardingId } = req.params;
+    const { employeeId, projectStatus } = req.body;
+    const allowed = ["started", "pending", "ongoing", "completed"];
+    if (!allowed.includes(projectStatus)) {
+      return res.status(400).json({ error: "Invalid projectStatus" });
+    }
+
+    const onboarding = await OnboardingInstance.findById(onboardingId);
+    if (!onboarding) return res.status(404).json({ message: "Not found" });
+    if (onboarding.employeeId.toString() !== employeeId) return res.status(403).json({ message: "Not authorized" });
+
+    onboarding.projectStatus = projectStatus;
+    onboarding.lastUpdatedAt = new Date();
+
+    // If employee sets completed, mark completionReview pending and notify admin/manager
+    if (projectStatus === "completed") {
+      onboarding.completionReview = onboarding.completionReview || { status: "pending" };
+      onboarding.completionReview.status = "pending";
+      await Notification.create({
+        userId: onboarding.assignedBy,
+        message: `Employee marked project as completed for onboarding ${onboardingId}. Please review documents.`
+      }).catch(() => {});
+      if (onboarding.managerId) {
+        await Notification.create({
+          userId: onboarding.managerId,
+          message: `Employee marked project as completed for onboarding ${onboardingId}. Please review documents.`
+        }).catch(() => {});
+      }
+    }
+
+    await onboarding.save();
+    res.json(onboarding);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* EMPLOYEE: UPLOAD DOCUMENTS FOR AN ONBOARDING */
+router.post("/:onboardingId/documents", upload.array("documents", 10), async (req, res) => {
+  try {
+    const { onboardingId } = req.params;
+    const employeeId = req.body.employeeId;
+
+    const onboarding = await OnboardingInstance.findById(onboardingId);
+    if (!onboarding) return res.status(404).json({ message: "Not found" });
+    if (onboarding.employeeId.toString() !== employeeId) return res.status(403).json({ message: "Not authorized" });
+
+    const files = req.files || [];
+    onboarding.documents = onboarding.documents || [];
+    for (const f of files) {
+      onboarding.documents.push({
+        originalName: f.originalname,
+        fileName: f.filename,
+        mimeType: f.mimetype,
+        size: f.size,
+        url: `/uploads/${f.filename}`,
+        uploadedBy: employeeId
+      });
+    }
+    onboarding.lastUpdatedAt = new Date();
+    await onboarding.save();
+
+    // notify admin/manager
+    if (onboarding.assignedBy) {
+      await Notification.create({
+        userId: onboarding.assignedBy,
+        message: `Employee uploaded ${files.length} document(s) for onboarding ${onboardingId}`
+      }).catch(() => {});
+    }
+    if (onboarding.managerId) {
+      await Notification.create({
+        userId: onboarding.managerId,
+        message: `Employee uploaded ${files.length} document(s) for onboarding ${onboardingId}`
+      }).catch(() => {});
+    }
+
+    res.json(onboarding);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ADMIN/MANAGER: ACCEPT/REJECT COMPLETION WITH REMARK */
+router.post("/:onboardingId/review-completion", async (req, res) => {
+  try {
+    const { onboardingId } = req.params;
+    const { reviewerId, reviewerRole, action, remark } = req.body;
+    if (!reviewerId || !reviewerRole) return res.status(400).json({ error: "reviewerId and reviewerRole are required" });
+    if (!["accept", "reject"].includes(action)) return res.status(400).json({ error: "Invalid action" });
+
+    const onboarding = await OnboardingInstance.findById(onboardingId);
+    if (!onboarding) return res.status(404).json({ message: "Not found" });
+
+    // basic authorization: admin who assigned OR the manager on the onboarding
+    const roleUp = String(reviewerRole).toUpperCase();
+    const isAdmin = roleUp === "ADMIN" && onboarding.assignedBy && onboarding.assignedBy.toString() === reviewerId;
+    const isManager = roleUp === "MANAGER" && onboarding.managerId && onboarding.managerId.toString() === reviewerId;
+    if (!isAdmin && !isManager) return res.status(403).json({ message: "Not authorized" });
+
+    onboarding.completionReview = onboarding.completionReview || {};
+    onboarding.completionReview.status = action === "accept" ? "accepted" : "rejected";
+    onboarding.completionReview.remark = remark || "";
+    onboarding.completionReview.reviewedAt = new Date();
+    onboarding.completionReview.reviewedBy = reviewerId;
+    onboarding.completionReview.reviewerRole = roleUp;
+
+    // if rejected, move project back to ongoing
+    if (action === "reject") {
+      onboarding.projectStatus = "ongoing";
+    }
+
+    await onboarding.save();
+
+    // notify employee
+    await Notification.create({
+      userId: onboarding.employeeId,
+      message: `Project completion was ${action === "accept" ? "accepted" : "rejected"} (${roleUp}). Remark: ${remark || "-"}`
+    }).catch(() => {});
+
+    res.json(onboarding);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* EMPLOYEE DAILY UPDATE */
+router.post("/update", async (req, res) => {
+  try {
+    const { onboardingId, employeeId, note } = req.body;
+    const onboarding = await OnboardingInstance.findById(onboardingId);
+    if (!onboarding) return res.status(404).json({ message: "Not found" });
+    if (onboarding.employeeId.toString() !== employeeId) return res.status(403).json({ message: "Not authorized" });
+
+    onboarding.updates = onboarding.updates || [];
+    onboarding.updates.push({ 
+      note, 
+      createdBy: employeeId, 
+      date: new Date(),
+      status: "pending"
+    });
+    onboarding.lastUpdatedAt = new Date();
+    await onboarding.save();
+
+    // notify manager if assigned
+    if (onboarding.managerId) {
+      await Notification.create({
+        userId: onboarding.managerId,
+        message: `Employee posted a new update for onboarding workflow`
+      });
+    }
+
+    // notify assignedBy (admin) if present
+    if (onboarding.assignedBy) {
+      await Notification.create({
+        userId: onboarding.assignedBy,
+        message: `Employee ${employeeId} posted an update for onboarding ${onboardingId}`
+      });
+    }
+
+    res.json(onboarding);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* MANAGER REVIEW EMPLOYEE UPDATE */
+router.post("/review-update", async (req, res) => {
+  try {
+    const { onboardingId, updateIndex, action, comment, managerId } = req.body;
+    const onboarding = await OnboardingInstance.findById(onboardingId);
+    if (!onboarding) return res.status(404).json({ message: "Not found" });
+    
+    // Verify manager is authorized
+    if (onboarding.managerId && onboarding.managerId.toString() !== managerId) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    if (!onboarding.updates || !onboarding.updates[updateIndex]) {
+      return res.status(404).json({ message: "Update not found" });
+    }
+
+    const update = onboarding.updates[updateIndex];
+    update.status = action === "approve" ? "approved" : "rejected";
+    update.managerComment = comment;
+    update.reviewedAt = new Date();
+    update.reviewedBy = managerId;
+
+    await onboarding.save();
+
+    // Notify employee
+    await Notification.create({
+      userId: onboarding.employeeId,
+      message: `Your update has been ${action}d by manager`
+    });
+
+    // Notify admin
+    if (onboarding.assignedBy) {
+      await Notification.create({
+        userId: onboarding.assignedBy,
+        message: `Manager ${action}d employee update for onboarding ${onboardingId}`
+      });
+    }
+
+    res.json(onboarding);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* GET onboardings for an employee */
+router.get("/employee/:employeeId", async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const onboardings = await OnboardingInstance.find({ employeeId })
+      .populate("workflowTemplateId", "name description")
+      .populate("managerId", "name email");
+    
+    const now = new Date();
+    const onboardingsWithTime = onboardings.map(o => {
+      const timeRemainingDays = o.deadline 
+        ? Math.ceil((o.deadline - now) / (1000 * 60 * 60 * 24)) 
+        : null;
+      return {
+        ...o.toObject(),
+        timeRemainingDays
+      };
+    });
+    
+    res.json(onboardingsWithTime);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ADMIN: GET ALL ONBOARDINGS */
+router.get("/admin/all", async (req, res) => {
+  try {
+    const onboardings = await OnboardingInstance.find()
+      .populate("employeeId", "name email")
+      .populate("managerId", "name email")
+      .populate("workflowTemplateId", "name description")
+      .populate("assignedBy", "name email");
+    
+    const now = new Date();
+    const onboardingsWithTime = onboardings.map(o => {
+      const timeRemainingDays = o.deadline 
+        ? Math.ceil((o.deadline - now) / (1000 * 60 * 60 * 24)) 
+        : null;
+      return {
+        ...o.toObject(),
+        timeRemainingDays
+      };
+    });
+    
+    res.json(onboardingsWithTime);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* GET NOTIFICATIONS FOR USER */
+router.get("/notifications/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const notifications = await Notification.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(50);
+    res.json(notifications);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* MARK NOTIFICATION AS READ */
+router.put("/notifications/:notificationId/read", async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    const notification = await Notification.findByIdAndUpdate(
+      notificationId,
+      { isRead: true },
+      { new: true }
+    );
+    if (!notification) return res.status(404).json({ message: "Not found" });
+    res.json(notification);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;
