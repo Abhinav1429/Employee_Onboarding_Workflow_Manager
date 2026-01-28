@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Employee-Onboarding-Workflow-Manager
 ## Problem Statement:
 Build an application to define and track onboarding tasks for new employees. Key Requirements: - Workflow Templates: admin defines steps and responsible roles. - Task Assignment: assign tasks to new hires and managers. - Progress Tracking: view status of each step in a workflow. - Notifications: send in-app reminders for pending tasks. Tools and Resources: - React.js - Node.js, Express.js - MongoDB, Mongoose Deliverables: - GitHub repo. - Running app showing workflow creation and tracking. - Example onboarding template and user task list.
@@ -88,40 +87,51 @@ Flowchart LR
   -  WF --> DB
   -  ONB --> DB
   -  NOTIF --> DB
-
-  -  Employee Onboarding Workflow Manager
-    ├─ auth-service/ <br>
-    ├─ models/User.js <br>
-    │   ├─ routes/auth.js<br>
-    │   └─ server.js<br>
-    ├─ workflow-service/<br>
-    |   ├─ models/WorkflowTemplate.js<br>
-    │   ├─ routes/workflows.js<br>
-    │   └─ server.js<br>
-    ├─ onboarding-service/<br>
-    │   ├─ models/OnboardingInstance.js<br>
-    │   ├─ models/Notification.js<br>
-    │   ├─ routes/onboarding.js<br>
-    │   └─ server.js<br>
-    ├─ frontend/<br>
-    │   ├─ src/<br>
-    │   │   ├─ components/<br>
-    │   │   │   ├─ WorkflowForm.jsx<br>
-    │   │   │   ├─ TaskList.jsx<br>
-    │   │   │   └─ NotificationList.jsx<br>
-    │   │   ├─ pages/<br>
-    │   │   │   ├─ AdminDashboard.jsx<br>
-    │   │   │   ├─ ManagerDashboard.jsx<br>
-    │   │   │   └─ EmployeeDashboard.jsx<br>
-    │   │   └─ App.jsx<br>
-    |   └─ package.json<br>
-    └─ README.md<br>
+------------------------------------------------------------------------------------
+  Employee-Onboarding-Workflow-Manager/<br>
+  │<br>
+  ├─ services/                      # All backend microservices<br>
+  │  │<br>
+  │  ├─ auth-service/               # Authentication & Users<br>
+  │  │  ├─ controllers/<br>
+  │  │  │  └─ auth.controller.js<br>
+  │  │  ├─ models/<br>
+  │  │  │  └─ User.js<br>
+  │  │  ├─ routes/<br>
+  │  │  │  └─ auth.routes.js<br>
+  │  │  ├─ middleware/<br>
+  │  │  │  └─ auth.middleware.js<br>
+  │  │  ├─ config/<br>
+  │  │  │  └─ db.js<br>
+  │  │  ├─ server.js<br>
+  │  │  ├─ package.json<br>
+  │  │  └─ .env<br>
+  │  │<br>
+  │  ├─ workflow-service/           # Workflow templates<br>
+  │  │  ├─ controllers/<br>
+  │  │  │  └─ workflow.controller.js<br>
+  │  │  ├─ models/<br>
+  │  │  │  └─ WorkflowTemplate.js<br>
+  │  │  ├─ routes/<br>
+  │  │  │  └─ workflow.routes.js<br>
+  │  │  ├─ config/<br>
+  │  │  │  └─ db.js<br>
+  │  │  ├─ server.js<br>
+  │  │  ├─ package.json<br>
+  │  │  └─ .env<br>
+  │  │<br>
+  │  ├─ onboarding-service/         # Employee onboarding process<br>
+  │  │  ├─ controllers/<br>
+  │  │  │  ├─ onboarding.controller.js<br>
+  │  │  │  └─ notification.controller.js<br>
+  │  │  ├─ models/<br>
+  │  │  │  ├─ OnboardingInstance.js<br>
+  │  │  │  └─ Notification.js<br>
+  │  │  ├─ routes/<br>
+  │  │  │  └─ onboarding.routes.js<br>
+  │  │  ├─ config/<br>
 ---
-## Structure
-- Created a basic UI and Structure of the file 
-- Connected the servers with Mongodb and Postman to fetch the details
-- Created a username and login with the same key 
-- The basic structure of the program has been created 
+
 
 ---
 ##Installation Setup 
@@ -131,7 +141,7 @@ Flowchart LR
  We can Choose one:<br>
 Local MongoDB (MongoDB Compass)<br>
 MongoDB Atlas (Cloud)<br>
-But for this project we have chosen Local MongoDB and integrated that as db.<br>
+But for this project we have chosen  MongoDB Atlas and integrated that as db.<br>
 We have also used postman to use post and get which are integrated through servers.<br>
 
 - **AUTH SERVICE**
@@ -295,8 +305,20 @@ We have also used postman to use post and get which are integrated through serve
   createdAt: Date          // Timestamp when notification was created
 }
 ```
+## Future scopes : 
+- More user roles like HR, Team Lead, and IT Support can be added to manage responsibilities more effectively.
 
+- A drag-and-drop workflow builder can be introduced to make workflow creation easy and user-friendly.
 
-=======
-# Employee_Onboarding_Workflow_Manager
->>>>>>> 6d50d352b456abc5837aa813407e0a3ced7745cf
+- Real-time notifications through email or mobile alerts can be added to keep users updated about tasks and deadlines.
+
+- Document upload and verification features can be included to make the onboarding process paperless.
+
+- Reports and analytics dashboards can be developed to track onboarding progress and identify delays.
+
+- A mobile application can be built so employees and managers can access the system anytime, anywhere.
+
+- The system can be deployed on cloud platforms using Docker for better scalability and performance.
+
+- Stronger security features like Single Sign-On (SSO), audit logs, and advanced authentication can be implemented.
+---
