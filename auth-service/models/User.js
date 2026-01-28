@@ -30,14 +30,14 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// HASH PASSWORD BEFORE SAVE
+// HASH PASSWORD BEFORE SAVE @abhinav
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-// COMPARE PASSWORD
+// COMPARE PASSWORD @abhinav
 userSchema.methods.comparePassword = function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
 };
