@@ -7,14 +7,14 @@ const authRoutes = require("./routes/auth.routes");
 
 const app = express();
 
-// middleware
+// middleware @abhinav
 app.use(cors());
 app.use(express.json());
 
-// routes
+// routes @abhinav
 app.use("/api/auth", authRoutes);
 
-// db
+// db @abhinav
 connectDB();
 
 const PORT = process.env.PORT || 4000;
