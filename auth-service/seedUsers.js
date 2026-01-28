@@ -16,11 +16,11 @@ const seedUsers = async () => {
   try {
     await connectDB();
 
-    // Clear existing users
+    // Clear existing users @abhinav
     await User.deleteMany({});
     console.log("Cleared existing users");
 
-    // Create admin first
+    // Create admin first @abhinav
     const admin = await User.create({
       name: "Admin User",
       email: "admin@example.com",
@@ -28,7 +28,7 @@ const seedUsers = async () => {
       role: "ADMIN"
     });
 
-    // Create manager
+    // Create manager @abhinav
     const manager = await User.create({
       name: "Manager User",
       email: "manager@example.com",
@@ -36,13 +36,13 @@ const seedUsers = async () => {
       role: "MANAGER"
     });
 
-    // Create employee assigned to manager
+    // Create employee assigned to manager @abhinav
     const employee = await User.create({
       name: "Employee User",
       email: "employee@example.com",
       password: "employee123",
       role: "EMPLOYEE",
-      managerId: manager._id  // Assign to manager
+      managerId: manager._id  // Assign to manager @abhinav
     });
 
     console.log("✓ Test users created successfully:");
