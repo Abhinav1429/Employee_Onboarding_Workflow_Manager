@@ -17,7 +17,7 @@ const {
 
 const router = express.Router();
 
-// FILE UPLOAD SETUP
+// FILE UPLOAD SETUP @abhinav
 const uploadDir = path.join(__dirname, "..", "uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -34,7 +34,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Routes
+// Routes @abhinav
 router.post("/assign", assignWorkflow);
 router.get("/employee/:employeeId", getEmployeeOnboardings);
 router.get("/manager/employees", getManagerEmployees);
@@ -43,7 +43,7 @@ router.get("/admin/all", getAllOnboardings);
 router.get("/notifications/:userId", getNotifications);
 router.put("/notifications/:id/read", markNotificationAsRead);
 
-// Employee actions
+// Employee actions @abhinav
 router.put("/:id/project-status", updateProjectStatus);
 router.post("/update", postUpdate);
 router.post("/:id/documents", upload.array("documents", 10), uploadDocuments);
