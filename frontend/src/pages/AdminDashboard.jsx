@@ -18,7 +18,7 @@ export default function AdminDashboard() {
   const userRole = localStorage.getItem("role");
 
   useEffect(() => {
-    // Check authentication
+    // Check authentication @abhinav
     if (!userId || !userRole || userRole.toUpperCase() !== "ADMIN") {
       navigate("/");
       return;
@@ -45,7 +45,7 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   };
-
+// Load Workflows @abhinav
   const loadWorkflows = async () => {
     try {
       const res = await workflowAPI.get("/");
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
       setWorkflows([]);
     }
   };
-
+// Load Onboardings @abhinav
   const loadOnboardings = async () => {
     try {
       const res = await onboardingAPI.get("/admin/all");
@@ -65,7 +65,7 @@ export default function AdminDashboard() {
       setOnboardings([]);
     }
   };
-
+//Load Employees @abhinav
   const loadEmployees = async () => {
     try {
       const res = await authAPI.get("/users/role/EMPLOYEE");
@@ -75,7 +75,7 @@ export default function AdminDashboard() {
       setEmployees([]);
     }
   };
-
+//Load Managers @abhinav
   const loadManagers = async () => {
     try {
       const res = await authAPI.get("/users/role/MANAGER");
@@ -85,7 +85,7 @@ export default function AdminDashboard() {
       setManagers([]);
     }
   };
-
+// Load Notificatins @abhinav
   const loadNotifications = async () => {
     if (userId) {
       try {
