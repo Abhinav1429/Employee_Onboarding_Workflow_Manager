@@ -9,7 +9,7 @@ const generateToken = (user) => {
   );
 };
 
-// REGISTER
+// REGISTER @abhinav
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role, managerId } = req.body;
@@ -35,7 +35,7 @@ exports.register = async (req, res) => {
   }
 };
 
-// LOGIN
+// LOGIN @abhinav
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -64,7 +64,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// GET ALL USERS (Admin / Manager)
+// GET ALL USERS Admin / Manager @abhinav
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.find().select("-password");
@@ -74,7 +74,7 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-// GET USERS BY ROLE
+// GET USERS BY ROLE @abhinav
 exports.getUsersByRole = async (req, res) => {
   try {
     const { role } = req.params;
