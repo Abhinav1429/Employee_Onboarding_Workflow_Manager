@@ -1,19 +1,23 @@
 require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
+const connectDB = require("./config/db");
 
-const workflowRoutes = require("./routes/workflows");
+const workflowRoutes = require("./routes/workflow.routes");
 
 const app = express();
+
+// middleware
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.DB_URL)
-  .then(() => console.log("MongoDB Atlas connected to workflowDB"))
-  .catch(err => console.error("MongoDB connection error:", err));
-
+// routes
 app.use("/api/workflows", workflowRoutes);
 
+// db
+connectDB();
+
 const PORT = process.env.PORT || 4001;
-app.listen(PORT, () => console.log(`Workflow Service running on ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Workflow service running on port ${PORT}`);
+});

@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+/* ---------------- TASK SCHEMA @abhinav ---------------- */
+
 const TaskSchema = new mongoose.Schema({
   stepOrder: Number,
   title: String,
@@ -13,57 +15,65 @@ const TaskSchema = new mongoose.Schema({
   reviewedAt: Date
 });
 
+/* ---------------- ONBOARDING INSTANCE SCHEMA @abhinav ---------------- */
+
 const OnboardingInstanceSchema = new mongoose.Schema({
+  // employee reference (Auth service owns User) @abhinav
   employeeId: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    ref: "User"
+    required: true
   },
+
+  // workflow reference (Workflow service owns WorkflowTemplate) @abhinav
   workflowTemplateId: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    ref: "WorkflowTemplate"
+    required: true
   },
+
   tasks: [TaskSchema],
+
   progress: {
     type: Number,
     default: 0
   },
+
   status: {
     type: String,
     enum: ["active", "completed", "rejected"],
     default: "active"
   },
-  // employee-facing status dropdown for the assigned workflow @abhinav
+
+  // employee-controlled project status dropdown @abhinav
   projectStatus: {
     type: String,
     enum: ["started", "pending", "ongoing", "completed"],
     default: "pending"
   },
+
   startedAt: {
     type: Date,
     default: Date.now
   },
+
   completedAt: Date,
-  // assigned by admin @abhinav
+
+  // admin who assigned workflow @abhinav
   assignedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+    type: mongoose.Schema.Types.ObjectId
   },
-  // manager assigned to this employee @abhinav
+
+  // manager assigned to employee @abhinav
   managerId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+    default: null
   },
 
   deadline: Date,
-  // updates by the employee @abhinav
+
+  // employee daily updates @abhinav
   updates: [
     {
-      date: {
-        type: Date,
-        default: Date.now
-      },
+      date: { type: Date, default: Date.now },
       note: String,
       createdBy: mongoose.Schema.Types.ObjectId,
       status: {
@@ -76,22 +86,18 @@ const OnboardingInstanceSchema = new mongoose.Schema({
       reviewedBy: mongoose.Schema.Types.ObjectId
     }
   ],
-  // documents uploaded by employee after completion @abhinav
+
+  // uploaded documents @abhinav
   documents: [
     {
       originalName: String,
       fileName: String,
-      mimeType: String,
-      size: Number,
       url: String,
-      uploadedAt: {
-        type: Date,
-        default: Date.now
-      },
-      uploadedBy: mongoose.Schema.Types.ObjectId
+      uploadedAt: { type: Date, default: Date.now }
     }
   ],
-  // admin/manager decision for completion/documents @abhinav
+
+  // final completion review @abhinav
   completionReview: {
     status: {
       type: String,
@@ -102,8 +108,7 @@ const OnboardingInstanceSchema = new mongoose.Schema({
     reviewedAt: Date,
     reviewedBy: mongoose.Schema.Types.ObjectId,
     reviewerRole: String
-  },
-  lastUpdatedAt: Date
+  }
 });
 
 module.exports = mongoose.model(
