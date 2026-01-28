@@ -4,6 +4,7 @@ Build an application to define and track onboarding tasks for new employees. Key
 
 This system is designed following **microservice architecture principles**, making it scalable and modular.  
 Each service (Auth, Workflow, Onboarding) is independently deployable, ensuring flexibility and maintainability.
+
 ---
 
 ## Key Features
