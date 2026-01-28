@@ -2,39 +2,31 @@
 ## Problem Statement:
 Build an application to define and track onboarding tasks for new employees. Key Requirements: - Workflow Templates: admin defines steps and responsible roles. - Task Assignment: assign tasks to new hires and managers. - Progress Tracking: view status of each step in a workflow. - Notifications: send in-app reminders for pending tasks. Tools and Resources: - React.js - Node.js, Express.js - MongoDB, Mongoose Deliverables: - GitHub repo. - Running app showing workflow creation and tracking. - Example onboarding template and user task list.
 
-This system is designed following **microservice architecture principles**, making it scalable, modular, and suitable for **enterprise use cases**.  
-Each service (Auth, Workflow, Onboarding, Frontend) is independently deployable, ensuring flexibility and maintainability.
-
+This system is designed following **microservice architecture principles**, making it scalable and modular.  
+Each service (Auth, Workflow, Onboarding) is independently deployable, ensuring flexibility and maintainability.
 ---
 
 ## Key Features
 
 ### 1. Workflow Templates
 - Admins can define onboarding workflows.
-- Each workflow consists of **ordered steps**.
-- Steps are assigned to specific roles: **HR, Manager, IT, Employee**.
+- Steps are assigned to specific roles: **Admin, Manager, Employee**.
 
 ### 2. Task Assignment
-- Tasks are **automatically assigned** when a new employee is onboarded.
+- Tasks are assigned when a new employee is onboarded.
 - Assignment is based on workflow definitions.
-- Managers and employees receive **personalized task lists**.
 
 ### 3. Progress Tracking
-- Track task status: **PENDING, IN_PROGRESS, COMPLETED**.
-- View onboarding progress **per employee**.
-- Provides both **workflow-level** and **task-level visibility**.
+- Track task status: **STARTED, PENDING, IN_PROGRESS, COMPLETED**.
+- View onboarding progress.
 
 ### 4. Notifications
-- In-app notifications for **pending tasks**.
-- Automated reminders for **overdue steps**.
-
+- In-app notifications for **assigned tasks**.
 ---
 
 ##  Why Microservices?
 - **Scalability**: Each service can scale independently.
 - **Flexibility**: Easy to extend workflows and notification mechanisms.
-- **Resilience**: Fault isolation ensures one failing service does not break the system.
-- **Enterprise Integration**: Can integrate with HR systems, identity providers, and analytics platforms.
 
 ---
 
@@ -49,13 +41,6 @@ Each service (Auth, Workflow, Onboarding, Frontend) is independently deployable,
 
 ---
 
-## Suitable For
-- **Large enterprises** with complex onboarding processes.  
-- **Startups** looking to streamline HR workflows.  
-- **Remote-first companies** needing clear task visibility and accountability.  
-
----
-
 ## Project Structure
 
 ## Architecture Overview
@@ -63,30 +48,10 @@ Each service (Auth, Workflow, Onboarding, Frontend) is independently deployable,
 - **Frontend**: React.js  
 - **Database**: MongoDB (Mongoose models)  
 - **Architecture**: Microservices (Auth, Workflow, Onboarding)
-- Architecture Style: Microservices
 
 ---
 
-## Architecture Diagram
-Flowchart LR
-  -  **UI[React Frontend]**
-  -  **API[API Gateway]**
-  -  **AUTH[Auth Service]**
-  -  **WF[Workflow Service]**
-  -  **ONB[Onboarding Service]**
-  -  **NOTIF[Notification Service]**
-  -  **DB[(MongoDB)]**
----
-  -  UI --> API
-  -  API --> AUTH
-  -  API --> WF
-  -  API --> ONB
-  -  API --> NOTIF
-
-  -  AUTH --> DB
-  -  WF --> DB
-  -  ONB --> DB
-  -  NOTIF --> DB
+## Architecture Diagram : 
 ------------------------------------------------------------------------------------
   Employee-Onboarding-Workflow-Manager/<br>
   │<br>
@@ -130,9 +95,6 @@ Flowchart LR
   │  │  ├─ routes/<br>
   │  │  │  └─ onboarding.routes.js<br>
   │  │  ├─ config/<br>
----
-
-
 ---
 ##Installation Setup 
 **Backend Setup : **
@@ -197,13 +159,6 @@ We have also used postman to use post and get which are integrated through serve
 - `GET /api/onboarding/admin/all` → Get all onboardings (admin)
 - `GET /api/onboarding/notifications/:userId` → Get notifications
 - `PUT /api/onboarding/notifications/:notificationId/read` → Mark notification as read
-
----
-
-## Frontend (React)
-- Role-based dashboards with modern UI
-- Real-time updates and notifications
-
 ---
 
 ## Features Implemented
@@ -218,7 +173,7 @@ We have also used postman to use post and get which are integrated through serve
 - Assign workflows to employees with manager linking  
 - Define time limits (days) for workflows  
 - View all workflows and employees assigned  
-- Track workflow progress with visual indicators  
+- Track workflow progress  
 - Review daily updates and manager decisions  
 - Tabbed interface for navigation  
 - Notification system  
@@ -234,13 +189,11 @@ We have also used postman to use post and get which are integrated through serve
 ### 4. Manager Functionality
 - View workflows assigned to employees under them  
 - See workflow details and remaining time  
-- Review employee updates (accept/reject)  
+- Review employee updates   
 - Approve/reject tasks with visibility to both Admin & Employee  
 
 ### 5. Workflow & Time Management
-- Workflow start date begins when assigned by Admin  
-- End date calculated based on allotted days  
-- Remaining days displayed dynamically  
+- Workflow start date begins when assigned by Admin    
 - Workflow status: Active / Completed / Rejected  
 - Progress tracking (percentage based on approved tasks)  
 - Deadline warnings (color-coded: green / yellow / red)  
@@ -310,15 +263,5 @@ We have also used postman to use post and get which are integrated through serve
 
 - A drag-and-drop workflow builder can be introduced to make workflow creation easy and user-friendly.
 
-- Real-time notifications through email or mobile alerts can be added to keep users updated about tasks and deadlines.
-
-- Document upload and verification features can be included to make the onboarding process paperless.
-
-- Reports and analytics dashboards can be developed to track onboarding progress and identify delays.
-
-- A mobile application can be built so employees and managers can access the system anytime, anywhere.
-
-- The system can be deployed on cloud platforms using Docker for better scalability and performance.
-
-- Stronger security features like Single Sign-On (SSO), audit logs, and advanced authentication can be implemented.
+- Microservices can be built using spring boot and deployed on application server.
 ---
