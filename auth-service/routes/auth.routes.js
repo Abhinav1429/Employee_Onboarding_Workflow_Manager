@@ -13,13 +13,13 @@ const router = express.Router();
 router.post("/register", register);
 router.post("/login", login);
 
-// Public route - get users by role (needed for frontend)
+// get users by role @abhinav
 router.get("/users/role/:role", getUsersByRole);
 
-// Public route - get all users (needed for onboarding service to populate names)
+//get all users needed for onboarding service @abhinav
 router.get("/users/all", getUsers);
 
-// protected routes
+// protected routes @abhinav
 router.get("/users", protect, authorize("ADMIN", "MANAGER"), getUsers);
 
 module.exports = router;
