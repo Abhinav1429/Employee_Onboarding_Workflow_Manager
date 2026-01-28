@@ -3,7 +3,7 @@ const Notification = require("../models/Notification");
 const mongoose = require("mongoose");
 const axios = require("axios");
 
-// ASSIGN WORKFLOW TO EMPLOYEE
+// ASSIGN WORKFLOW TO EMPLOYEE @abhinav
 exports.assignWorkflow = async (req, res) => {
   try {
     const { employeeId, workflowTemplate, assignedBy, managerId } = req.body;
@@ -59,7 +59,7 @@ exports.assignWorkflow = async (req, res) => {
   }
 };
 
-// GET EMPLOYEE ONBOARDINGS
+// GET EMPLOYEE ONBOARDINGS @abhinav
 exports.getEmployeeOnboardings = async (req, res) => {
   try {
     const employeeId = new mongoose.Types.ObjectId(req.params.employeeId);
@@ -86,7 +86,7 @@ exports.getEmployeeOnboardings = async (req, res) => {
   }
 };
 
-// GET MANAGER EMPLOYEES
+// GET MANAGER EMPLOYEES @abhinav
 exports.getManagerEmployees = async (req, res) => {
   try {
     const { managerId } = req.query;
@@ -116,7 +116,7 @@ exports.getManagerEmployees = async (req, res) => {
   }
 };
 
-// GET MANAGER TASKS
+// GET MANAGER TASKS @abhinav
 exports.getManagerTasks = async (req, res) => {
   try {
     const { managerId } = req.query;
@@ -146,7 +146,7 @@ exports.getManagerTasks = async (req, res) => {
   }
 };
 
-// GET ALL ONBOARDINGS (ADMIN)
+// GET ALL ONBOARDINGS (ADMIN) @abhinav
 exports.getAllOnboardings = async (req, res) => {
   try {
     const onboardings = await OnboardingInstance.find();
@@ -161,7 +161,7 @@ exports.getAllOnboardings = async (req, res) => {
       onboardings.map(o => o.workflowTemplateId?.toString()).filter(Boolean)
     )];
 
-    // Fetch users from auth service
+    // Fetch users from auth service @abhinav
     let usersMap = {};
     try {
       console.log("Fetching users from http://localhost:4000/api/auth/users/all");
@@ -174,7 +174,7 @@ exports.getAllOnboardings = async (req, res) => {
       console.error("Failed to fetch users:", err.message);
     }
 
-    // Fetch workflows from workflow service
+    // Fetch workflows from workflow service @abhinav
     let workflowsMap = {};
     try {
       console.log("Fetching workflows from http://localhost:4001/api/workflows");
@@ -190,7 +190,7 @@ exports.getAllOnboardings = async (req, res) => {
     const enriched = onboardings.map(o => {
       const obj = o.toObject();
       
-      // Add user details with proper fallback
+      // Add user details with proper fallback @abhinav
       if (obj.employeeId) {
         const empId = obj.employeeId.toString();
         const userData = usersMap[empId];
@@ -219,7 +219,7 @@ exports.getAllOnboardings = async (req, res) => {
         };
       }
 
-      // Add workflow details with proper fallback
+      // Add workflow details @abhinav
       if (obj.workflowTemplateId) {
         const wfId = obj.workflowTemplateId.toString();
         const wfData = workflowsMap[wfId];
@@ -253,7 +253,7 @@ exports.getAllOnboardings = async (req, res) => {
   }
 };
 
-// GET NOTIFICATIONS
+// GET NOTIFICATIONS @abhinav
 exports.getNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({ userId: req.params.userId })
@@ -264,7 +264,7 @@ exports.getNotifications = async (req, res) => {
   }
 };
 
-// MARK NOTIFICATION AS READ
+// MARK NOTIFICATION AS READ @abhinav
 exports.markNotificationAsRead = async (req, res) => {
   try {
     await Notification.findByIdAndUpdate(req.params.id, { isRead: true });
@@ -274,7 +274,7 @@ exports.markNotificationAsRead = async (req, res) => {
   }
 };
 
-// UPDATE PROJECT STATUS
+// UPDATE PROJECT STATUS @abhinav
 exports.updateProjectStatus = async (req, res) => {
   try {
     const { employeeId, projectStatus } = req.body;
@@ -293,7 +293,7 @@ exports.updateProjectStatus = async (req, res) => {
     onboarding.projectStatus = projectStatus;
     await onboarding.save();
 
-    // Notify manager
+    // Notify manager @abhinav
     if (onboarding.managerId) {
       await Notification.create({
         userId: onboarding.managerId,
@@ -308,7 +308,7 @@ exports.updateProjectStatus = async (req, res) => {
   }
 };
 
-// POST UPDATE NOTE
+// POST UPDATE NOTE @abhinav
 exports.postUpdate = async (req, res) => {
   try {
     const { onboardingId, employeeId, note } = req.body;
@@ -336,7 +336,7 @@ exports.postUpdate = async (req, res) => {
 
     await onboarding.save();
 
-    // Notify manager
+    // Notify manager @abhinav
     if (onboarding.managerId) {
       await Notification.create({
         userId: onboarding.managerId,
@@ -351,7 +351,7 @@ exports.postUpdate = async (req, res) => {
   }
 };
 
-// UPLOAD DOCUMENTS
+// UPLOAD DOCUMENTS @abhinav
 exports.uploadDocuments = async (req, res) => {
   try {
     const { employeeId } = req.body;
@@ -387,7 +387,7 @@ exports.uploadDocuments = async (req, res) => {
 
     await onboarding.save();
 
-    // Notify manager
+    // Notify manager @abhinav
     if (onboarding.managerId) {
       await Notification.create({
         userId: onboarding.managerId,
