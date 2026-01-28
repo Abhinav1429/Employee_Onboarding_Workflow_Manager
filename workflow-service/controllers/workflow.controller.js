@@ -1,6 +1,6 @@
 const WorkflowTemplate = require("../models/WorkflowTemplate");
 
-// CREATE WORKFLOW
+// CREATE WORKFLOW @abhinav
 exports.createWorkflow = async (req, res) => {
   try {
     const { name, description, allottedTimeDays, steps } = req.body;
@@ -20,7 +20,7 @@ exports.createWorkflow = async (req, res) => {
   }
 };
 
-// GET ALL WORKFLOWS
+// GET ALL WORKFLOWS @abhinav
 exports.getAllWorkflows = async (req, res) => {
   try {
     const workflows = await WorkflowTemplate.find();
@@ -30,7 +30,7 @@ exports.getAllWorkflows = async (req, res) => {
   }
 };
 
-// GET WORKFLOW BY ID
+// GET WORKFLOW BY ID @abhinav
 exports.getWorkflowById = async (req, res) => {
   try {
     const workflow = await WorkflowTemplate.findById(req.params.id);
