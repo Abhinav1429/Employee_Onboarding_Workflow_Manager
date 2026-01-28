@@ -17,7 +17,7 @@ export default function ManagerDashboard() {
   const userName = localStorage.getItem("userName") || "Manager";
   const userRole = localStorage.getItem("role");
 
-  /* Auth Guard */
+  // Auth Guard @abhinav
   useEffect(() => {
     if (!managerId || userRole?.toUpperCase() !== "MANAGER") {
       navigate("/");
@@ -43,7 +43,7 @@ export default function ManagerDashboard() {
     }
   };
 
-  /* Load Tasks */
+  // Load Tasks @abhinav
   const loadTasks = async () => {
     try {
       const res = await onboardingAPI.get(`/manager-tasks?managerId=${managerId}`);
@@ -54,7 +54,7 @@ export default function ManagerDashboard() {
     }
   };
 
-  /* Load Employees + Onboardings */
+  // Load Employees + Onboardings @abhinav
   const loadEmployeesAndOnboardings = async () => {
     try {
       const obRes = await onboardingAPI.get(`/manager/employees?managerId=${managerId}`);
@@ -72,7 +72,7 @@ export default function ManagerDashboard() {
     }
   };
 
-  /* Load Notifications */
+  // Load Notifications @abhinav
   const loadNotifications = async () => {
     try {
       const res = await onboardingAPI.get(`/notifications/${managerId}`);
@@ -83,7 +83,7 @@ export default function ManagerDashboard() {
     }
   };
 
-  /* Helpers */
+  // Helpers @abhinav
   const getOnboardingForEmployee = (empId) =>
     onboardings.find(o => String(o.employeeId) === String(empId));
 
@@ -92,7 +92,7 @@ export default function ManagerDashboard() {
     navigate("/");
   };
 
-  /* ======================= UI ======================= */
+  //  UI @abhinav
 
   return (
     <div style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
@@ -107,7 +107,7 @@ export default function ManagerDashboard() {
           <p>Loading dashboard...</p>
         </div>
       )}
-      {/* HEADER */}
+      {/* HEADER @abhinav*/}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h2>Manager Dashboard</h2>
         <div>
@@ -129,7 +129,7 @@ export default function ManagerDashboard() {
         </div>
       </div>
 
-      {/* TABS */}
+      {/* TABS @abhinav*/}
       <div style={{ margin: "20px 0", borderBottom: "1px solid #ccc" }}>
         <button 
           onClick={() => setActiveTab("tasks")}
@@ -174,7 +174,7 @@ export default function ManagerDashboard() {
         </button>
       </div>
 
-      {/* ================= TASKS TAB ================= */}
+      {/* = TASKS TAB @abhinav */}
       {activeTab === "tasks" && (
         <div>
           <h3>Tasks to Review</h3>
@@ -202,7 +202,7 @@ export default function ManagerDashboard() {
         </div>
       )}
 
-      {/* ================= EMPLOYEES TAB (ALIGNED) ================= */}
+      {/* EMPLOYEES TAB @abhinav */}
       {activeTab === "employees" && (
         <div>
           <h3>My Employees</h3>
@@ -321,7 +321,7 @@ export default function ManagerDashboard() {
         </div>
       )}
 
-      {/* ================= NOTIFICATIONS TAB ================= */}
+      {/*  NOTIFICATIONS TAB @abhinav */}
       {activeTab === "notifications" && (
         <NotificationList
           notifications={notifications}
@@ -332,7 +332,7 @@ export default function ManagerDashboard() {
   );
 }
 
-/* ---------------- TABLE STYLES ---------------- */
+/*TABLE STYLES @abhinav */
 
 const thLeft = {
   padding: "12px",
