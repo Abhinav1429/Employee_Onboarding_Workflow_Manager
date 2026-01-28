@@ -7,22 +7,22 @@ const onboardingRoutes = require("./routes/onboarding.routes");
 
 const app = express();
 
-// Middleware
+// Middleware @abhinav
 app.use(cors());
 app.use(express.json());
 
-// Serve uploaded documents
+// Serve uploaded documents @abhinav
 app.use("/uploads", express.static("uploads"));
 
-// Routes
+// Routes @abhinav
 app.use("/api/onboarding", onboardingRoutes);
 
-// Test root
+// Test root @abhinav
 app.get("/", (req, res) => {
   res.send("Onboarding Service is running");
 });
 
-// DB
+// DB @abhinav
 connectDB();
 
 const PORT = process.env.PORT || 4002;
